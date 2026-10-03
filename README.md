@@ -4,6 +4,14 @@
 
 **Data:** 120,000 claims from the Kaggle dataset [DenialIQ: 120K Medical Claims | X12 Denial Codes](https://www.kaggle.com/datasets/nudratabbas/denialiq-120k-medical-claims-x12-denial-codes) (CC BY-SA 4.0), submitted January 2021 to June 2024. **The dataset is synthetic** (every row is flagged `synthetic_flag = TRUE` by its author). Findings show how this analysis would run on real 837/835 data; the specific numbers describe the generator, not a real hospital.
 
+## Dashboard preview
+
+![Dashboard: bottom line, KPI cards and five finding-titled charts](assets/dashboard.png)
+
+```bash
+pip install -r requirements.txt && streamlit run app.py
+```
+
 ---
 
 ## 1. Bottom line
@@ -15,10 +23,22 @@ Denials tie up **$74.1M in billed charges** over 42 months (30.2% of adjudicated
 ## 2. Key findings
 
 1. **Low documentation accounts for almost all denials.** Claims scoring below 0.7 are denied 81.1% of the time, against 1.7% for claims at 0.7 or above. The low-documentation group is 36% of claims but 96% of denied dollars ($71.4M of $74.1M). Below 0.5, all 19,233 claims were denied, which looks like a hard rule in the synthetic generator rather than real payer behaviour.
+
+![Denial rate by documentation band](assets/doc_denial_rate.png)
+
+![Share of claims vs share of denied dollars](assets/denied_dollar_share.png)
 2. **Payer, specialty and diagnosis barely matter, so a payer-by-payer escalation would be misdirected.** The six payers sit between 29.8% and 30.7% with overlapping confidence intervals. None of the three dimensions is significantly related to denial: chi-square p = 0.48 for payer, 0.88 for specialty and 0.13 for diagnosis chapter, and every Cramér's V is 0.013 or less, which is effectively zero. Adjusting for procedure mix moves no payer or specialty more than 2% from its expected rate, so the flat picture is not a Simpson's-paradox artefact. Orthopedic surgery (31.6% of denied dollars) and CPT 27447, total knee replacement (19.1%), lead on dollars only because they bill the most per claim ($8,118 average for orthopedics, against $5,034 for OB/GYN and $3,789 for cardiology). Their denial rates of 29.6% and 29.0% are at the average.
+
+![Denial rate by payer](assets/payer_flat.png)
 3. **Prior-auth gaps look like a major driver, but most of that is a documentation effect.** The raw comparison is 79.4% denied with an auth gap versus 22.6% without. However, 88% of gap claims also have weak documentation. Comparing gap and no-gap claims within the same documentation band (auth-required claims only), a gap adds about 11 points in the 0.5–0.7 band (71.8% vs 60.7%) and in the 0.7–0.9 band (13.2% vs 2.1%). Below 0.5 it adds nothing, because every claim there is denied anyway. That works out to about 102 extra denials and $0.38M a year: real, but second-order.
+
+![Auth gap effect within documentation bands](assets/auth_gap_by_doc.png)
 4. **$32.5M of denied charges is modeled as recoverable, and it is concentrated.** Coding-error and bundling denials have the best appeal odds (74% and 62% average modeled success) and hold $14.5M recoverable, about $4.1M a year. Duplicate and timely-filing denials ($10.7M, about $3.1M a year) are not appealable at all. They can only be prevented, not worked.
-5. **The problem is structural, not getting better or worse.** The quarterly denial rate has stayed between 29.4% and 30.9% for 14 straight quarters. No single period explains it, so waiting will not fix it.
+
+![Recoverable dollars by denial category](assets/recoverable_by_category.png)
+5. **The problem is structural, not getting better or worse.** The quarterly denial rate has stayed between 29.3% and 30.9% for 14 straight quarters. No single period explains it, so waiting will not fix it.
+
+![Quarterly denial rate](assets/quarterly_trend.png)
 
 ## 3. Recommendations (ranked by impact vs. effort)
 
@@ -80,14 +100,15 @@ streamlit run app.py
 
 The cleaned parquet file is committed, so `streamlit run app.py` works straight after cloning, without the download.
 
-**Dashboard:** a KPI row plus five charts: denial rate by documentation band; auth gap vs documentation; denied $ by category, split into recoverable and not; denial rate by payer, specialty or diagnosis chapter; and the quarterly trend. Filters cover payer, specialty, diagnosis chapter and month range.
+**Dashboard:** a bottom-line box, four KPI cards and five charts: denial rate by documentation band; auth gap vs documentation; denied $ by category, split into recoverable and not; denial rate by payer, specialty or diagnosis chapter; and the quarterly trend. Filters cover payer, specialty, diagnosis chapter and month range.
 
 | Path | What it is |
 |---|---|
 | `clean.py`, `sql/00_clean.sql` | Cleaning and data-quality log |
 | `sql/01`–`11_*.sql` | One commented query per question |
 | `analyze.py` | Runs the queries and the chi-square tests, writes `outputs/` |
-| `app.py` | Streamlit dashboard |
+| `app.py`, `.streamlit/config.toml` | Streamlit dashboard and theme |
+| `make_figures.py`, `assets/` | Static README charts (matplotlib, from `outputs/`) and dashboard screenshot |
 | `outputs/` | Query results that back every number above |
 
 ## License
