@@ -51,14 +51,15 @@ ax.bar(x + 0.2, a.share_of_denied_usd, 0.4, color=[GREY, ACCENT])
 for xi, v in zip(x - 0.2, a.share_of_claims): ax.text(xi, v + 0.02, f"{v:.0%}", ha="center", fontsize=9)
 for xi, v in zip(x + 0.2, a.share_of_denied_usd): ax.text(xi, v + 0.02, f"{v:.0%}", ha="center", fontsize=9)
 ax.set_xticks(x, ["Adequate doc (>=0.7)", "Low doc (<0.7)"]); ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}"); ax.set_ylim(0, 1.1)
-save(f, "denied_dollar_share", "light bar = share of claims, dark bar = share of denied dollars.")
+save(f, "denied_dollar_share", "hold claims below 0.7 for review. Light bar = share of claims, dark bar = share of denied $.")
 
 # 3. payers are flat
 p = rd("02_by_payer").sort_values("denial_rate", ascending=False)
 f, ax = fig_("Payers differ by under 1 point: not a payer problem", "Payer", "Denial rate (%, 95% CI)")
 pct_bars(ax, p.payer_type.str.replace("_", " "), p.denial_rate.values, GREY, p.ci_low.values, p.ci_high.values, one=True)
 ax.set_ylim(0, 0.5); ax.tick_params(axis="x", labelsize=7.5)
-ax.axhline(0.3019, color=ACCENT, ls="--", lw=1); ax.text(5.4, 0.312, "Overall 30.2%", color=ACCENT, ha="right", fontsize=9)
+ov = rd("01_kpis").denial_rate[0]
+ax.axhline(ov, color=ACCENT, ls="--", lw=1); ax.text(5.4, ov + 0.012, f"Overall {ov:.1%}", color=ACCENT, ha="right", fontsize=9)
 save(f, "payer_flat", "escalating payer by payer would be misdirected; overlapping intervals.")
 
 # 4. auth gap within documentation bands
@@ -76,17 +77,18 @@ save(f, "auth_gap_by_doc", "fix documentation first; the auth effect is second-o
 # 5. recoverable by category
 c = rd("06_by_denial_category").assign(nr=lambda t: t.denied_usd - t.recoverable_usd).sort_values("denied_usd")
 f, ax = fig_("Coding errors hold the most recoverable dollars", "Denied billed $ (millions)", "", h=4.2)
-ax.barh(c.denial_category.str.replace("_", " "), c.recoverable_usd / 1e6, color=ACCENT, label="Recoverable (modeled)")
-ax.barh(c.denial_category.str.replace("_", " "), c.nr / 1e6, left=c.recoverable_usd / 1e6, color=GREY, label="Not recoverable")
+key = [ACCENT if k in ("coding_error", "bundling") else GREY for k in c.denial_category]
+ax.barh(c.denial_category.str.replace("_", " "), c.recoverable_usd / 1e6, color=key)
+ax.barh(c.denial_category.str.replace("_", " "), c.nr / 1e6, left=c.recoverable_usd / 1e6, color=GRID)
 for i, (r, t) in enumerate(zip(c.recoverable_usd, c.denied_usd)): ax.text(t / 1e6 + 0.3, i, rf"\${r/1e6:.1f}M of \${t/1e6:.1f}M", va="center", fontsize=8)
-ax.set_xlim(0, 27); ax.legend(frameon=False, loc="lower right", fontsize=8); ax.grid(axis="y", visible=False)
-save(f, "recoverable_by_category", "work coding-error and bundling first; duplicates and late filings can only be prevented.")
+ax.set_xlim(0, 27); ax.grid(axis="y", visible=False)
+save(f, "recoverable_by_category", "work coding-error and bundling first (dark = recoverable); duplicates and late filings only preventable.")
 
 # 6. quarterly trend
 t = rd("07_trend_quarterly")
-f, ax = fig_("Denial rate stays 29.3%-30.9% in every quarter", "Quarter", "Denial rate (%)")
+f, ax = fig_(f"Denial rate stays {t.denial_rate.min():.1%}-{t.denial_rate.max():.1%} in every quarter", "Quarter", "Denial rate (%)")
 ax.plot(t.year_quarter, t.denial_rate, color=GREY, marker="o", lw=2)
 ax.scatter([t.denial_rate.idxmax()], [t.denial_rate.max()], color=ACCENT, zorder=3)
-ax.annotate("Highest: 30.9%", (t.denial_rate.idxmax(), t.denial_rate.max()), (t.denial_rate.idxmax(), 0.40), color=ACCENT, ha="center", arrowprops=dict(arrowstyle="->", color=ACCENT))
+ax.annotate(f"Highest: {t.denial_rate.max():.1%}", (t.denial_rate.idxmax(), t.denial_rate.max()), (t.denial_rate.idxmax(), 0.40), color=ACCENT, ha="center", arrowprops=dict(arrowstyle="->", color=ACCENT))
 ax.set_ylim(0, 0.6); ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}"); ax.tick_params(axis="x", rotation=60, labelsize=8)
 save(f, "quarterly_trend", "no single quarter explains the problem, so waiting will not fix it.")

@@ -114,8 +114,8 @@ with c2:
                     text=s["rate"].map("{:.0%}".format), textposition="outside", error_y=err(s))
     layout(fig, "Documentation matters far more than a prior-auth gap",
            "Documentation group", "Denial rate (%)", barmode="group", yaxis=dict(tickformat=".0%", range=[0, 1.15]))
-    show(fig, "Across the full dataset, an auth gap adds about 11 points within a documentation band, while "
-              "documentation moves the rate by 60+ points: fix docs first.")
+    show(fig, "Across the full dataset, an auth gap adds roughly 8-12 points within a documentation group, while "
+              "documentation moves the rate by 70+ points: fix docs first.")
 
 c3, c4 = st.columns(2, gap="large")
 with c3:
