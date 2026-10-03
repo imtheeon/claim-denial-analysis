@@ -1,0 +1,10 @@
+part,doc_group,auth_status,adjudicated,share_of_claims,denial_rate,denied_usd,share_of_denied_usd
+A: all claims,adequate doc (>=0.7),,71449,0.6407,0.0167,2724847.0,0.0368
+A: all claims,low doc (<0.7),,40063,0.3593,0.8105,71407521.0,0.9632
+B: auth-required claims,1: <0.5,gap,3461,0.5176,1.0,12815832.0,
+B: auth-required claims,1: <0.5,no gap,5244,0.1202,1.0,19196164.0,
+B: auth-required claims,2: 0.5-0.7,gap,2430,0.3634,0.7177,6388748.0,
+B: auth-required claims,2: 0.5-0.7,no gap,6945,0.1592,0.6068,15090913.0,
+B: auth-required claims,3: 0.7-0.9,gap,795,0.1189,0.1321,455548.0,
+B: auth-required claims,3: 0.7-0.9,no gap,19685,0.4511,0.0214,1584484.0,
+B: auth-required claims,4: >=0.9,no gap,11764,0.2696,0.0,,

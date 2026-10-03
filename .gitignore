@@ -1,0 +1,5 @@
+# Raw Kaggle files are large (~75 MB); re-download with the command in the README
+data/raw/
+__pycache__/
+.venv/
+.streamlit/secrets.toml

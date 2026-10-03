@@ -1,0 +1,26 @@
+dimension,segment,adjudicated,observed_rate,expected_rate,ratio
+payer (CPT mix),Medicaid_Managed,16690,0.3074,0.3018,1.018
+payer (CPT mix),Medicare_Advantage,20212,0.3042,0.3019,1.008
+payer (CPT mix),Medicare_FFS,24501,0.3011,0.3019,0.998
+payer (CPT mix),Commercial_HMO,14371,0.3009,0.302,0.996
+payer (CPT mix),Commercial_PPO,27865,0.2992,0.3019,0.991
+payer (CPT mix),Commercial_EPO,7873,0.298,0.3019,0.987
+payer (doc band + auth gap mix),Medicaid_Managed,16690,0.3074,0.3038,1.012
+payer (doc band + auth gap mix),Commercial_PPO,27865,0.2992,0.2983,1.003
+payer (doc band + auth gap mix),Medicare_FFS,24501,0.3011,0.3005,1.002
+payer (doc band + auth gap mix),Commercial_EPO,7873,0.298,0.2982,0.999
+payer (doc band + auth gap mix),Medicare_Advantage,20212,0.3042,0.3058,0.995
+payer (doc band + auth gap mix),Commercial_HMO,14371,0.3009,0.3055,0.985
+specialty (CPT mix),Pulmonology,5665,0.3059,0.3005,1.018
+specialty (CPT mix),Neurology,6545,0.3053,0.3004,1.016
+specialty (CPT mix),Gastroenterology,6908,0.3031,0.3012,1.007
+specialty (CPT mix),Primary_Care,6798,0.3052,0.3037,1.005
+specialty (CPT mix),Behavioral_Health,8715,0.3001,0.299,1.004
+specialty (CPT mix),Obstetrics_Gynecology,5508,0.3083,0.3074,1.003
+specialty (CPT mix),Physical_Therapy,5603,0.3023,0.3023,1.0
+specialty (CPT mix),Radiology,7897,0.2976,0.2976,1.0
+specialty (CPT mix),Cardiology,11216,0.3,0.3009,0.997
+specialty (CPT mix),Oncology,7825,0.308,0.3097,0.995
+specialty (CPT mix),Orthopedic_Surgery,9924,0.2963,0.2977,0.995
+specialty (CPT mix),Emergency_Medicine,15540,0.3021,0.3039,0.994
+specialty (CPT mix),Internal_Medicine,13368,0.299,0.3017,0.991

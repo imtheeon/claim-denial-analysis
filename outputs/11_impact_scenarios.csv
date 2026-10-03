@@ -1,0 +1,9 @@
+scenario,value
+"docs gate: denied $ avoided (25% fixed), $ per year",4995369.0
+"docs gate: denied $ avoided (50% fixed), $ per year",9990738.0
+docs gate: low-doc denial rate,0.8105
+docs gate: adequate-doc denial rate,0.0167
+"auth check: excess denials from auth gaps (claims, per year)",102.0
+"auth check: excess denied $ from auth gaps, per year",382411.0
+"recode queue: modeled recoverable $ (coding_error + bundling), $ per year",4132696.0
+"write-off: duplicate + timely_filing denied $, per year",3071362.0

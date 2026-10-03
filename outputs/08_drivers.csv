@@ -1,0 +1,9 @@
+driver,level,adjudicated,denied,denial_rate,ci_low,ci_high,denied_usd
+auth_gap (auth-required claims only),gap,6686,5310.0,0.7942,0.7843,0.8037,19660129.0
+auth_gap (auth-required claims only),no gap,43638,9880.0,0.2264,0.2225,0.2304,35871561.0
+documentation_completeness,1: <0.5,19233,19233.0,1.0,0.9998,1.0,42698217.0
+documentation_completeness,2: 0.5-0.7,20830,13237.0,0.6355,0.6289,0.642,28709304.0
+documentation_completeness,3: 0.7-0.9,45229,1194.0,0.0264,0.025,0.0279,2724847.0
+documentation_completeness,4: >=0.9,26220,0.0,0.0,0.0,0.0001,0.0
+modifier,absent,50401,15231.0,0.3022,0.2982,0.3062,33364176.0
+modifier,present,61111,18433.0,0.3016,0.298,0.3053,40768192.0
