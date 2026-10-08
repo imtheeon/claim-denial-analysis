@@ -1,5 +1,7 @@
 # Claim Denial Analysis
 
+[![tests](https://github.com/imtheeon/claim-denial-analysis/actions/workflows/tests.yml/badge.svg)](https://github.com/imtheeon/claim-denial-analysis/actions/workflows/tests.yml)
+
 **Question:** Which procedures, providers, payers and diagnosis categories get denied most, what do denials cost, and what should a billing team do about it?
 
 **Data:** 120,000 claims from the Kaggle dataset [DenialIQ: 120K Medical Claims | X12 Denial Codes](https://www.kaggle.com/datasets/nudratabbas/denialiq-120k-medical-claims-x12-denial-codes) (CC BY-SA 4.0), submitted January 2021 to June 2024. **The dataset is synthetic** (every row is flagged `synthetic_flag = TRUE` by its author). Findings show how this analysis would run on real 837/835 data; the specific numbers describe the generator, not a real hospital.
@@ -10,6 +12,7 @@
 
 ```bash
 pip install -r requirements.txt && streamlit run app.py
+python -m pytest -q     # checks the README numbers against outputs/ and the cleaned data
 ```
 
 ---
