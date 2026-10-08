@@ -1,0 +1,223 @@
+<title>Claim Denial Explorer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+/* Layout: one column, a report that is also a tool. Headline finding first, one calculator, then the evidence charts.
+   Color: cool paper and ink, one teal for the data, one amber reserved for "low documentation / at risk". */
+:root{
+  --bg:#F2F5F6; --surface:#FFFFFF; --ink:#13242C; --ink2:#44585F; --muted:#6B7C82; --line:#D5DDE0; --grid:#E6ECEE;
+  --accent:#0B6E8A; --accent-soft:#D8EBF1; --risk:#B45309; --risk-soft:#F8E6CF;
+  --f-display:'Newsreader',Georgia,serif; --f-body:'IBM Plex Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1A1F; --surface:#15262D; --ink:#E7EFF1; --ink2:#B5C5CA; --muted:#8FA1A7; --line:#2A3F47; --grid:#203239;
+  --accent:#5BC0DE; --accent-soft:#17414F; --risk:#F2A33C; --risk-soft:#4A3516; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1A1F; --surface:#15262D; --ink:#E7EFF1; --ink2:#B5C5CA; --muted:#8FA1A7; --line:#2A3F47; --grid:#203239;
+  --accent:#5BC0DE; --accent-soft:#17414F; --risk:#F2A33C; --risk-soft:#4A3516; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:28px 56px}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1,h2{font-family:var(--f-display);font-weight:600;text-wrap:balance;margin:0;color:var(--ink)}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.12}
+h2{font-size:22px;line-height:1.2}
+p{margin:0}
+.lede{color:var(--ink2);max-width:62ch;font-size:16px}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--risk);background:var(--risk-soft);padding:3px 8px;border-radius:3px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+.kpi b{display:block;font-family:var(--f-mono);font-weight:500;font-size:26px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.kpi span{font-size:13px;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.note{font-size:13.5px;color:var(--ink2);max-width:66ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.calc{display:grid;gap:16px}
+.calc label{font-weight:500}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+.out{display:flex;flex-wrap:wrap;gap:6px 28px;align-items:baseline}
+.big{font-family:var(--f-mono);font-size:clamp(30px,6vw,44px);font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums}
+.small{font-size:13px;color:var(--muted)}
+svg{width:100%;height:auto;display:block;overflow:visible}
+svg text{font-family:var(--f-body);fill:var(--ink2);font-size:12px}
+svg .val{font-family:var(--f-mono);fill:var(--ink);font-size:12px}
+.hit{cursor:default}
+.hit:focus{outline:2px solid var(--accent);outline-offset:2px}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;padding:6px 9px;border-radius:4px;max-width:240px;z-index:9;opacity:0;transition:opacity .08s}
+details{font-size:13px;color:var(--ink2)}
+summary{cursor:pointer;color:var(--accent);padding:4px 0}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:100%}
+th,td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;max-width:70ch}
+a{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){#tip{transition:none}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <span class="tag">Synthetic data</span>
+    <h1>Where a hospital's $74.1M in denied claims comes from</h1>
+    <p class="lede">120,000 claims, January 2021 to June 2024. Payer, specialty and diagnosis barely change the denial rate. Documentation quality does. Move the slider to see what fixing it could be worth.</p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <h2>Documentation score is the whole story</h2>
+    <p class="note">Share of claims denied, by the documentation completeness score recorded with each claim (auth-required claims). Every claim scoring under 0.5 was denied; none at 0.9 or above was. That is cleaner than real payers behave, which is why the dollar estimate below is an upper bound.</p>
+    <div class="panel"><svg id="c-doc" viewBox="0 0 640 250" role="img" aria-label="Denial rate by documentation score band"></svg>
+    <details><summary>View as table</summary><div class="tw" id="t-doc"></div></details></div>
+  </section>
+
+  <section>
+    <h2>What would a documentation check be worth?</h2>
+    <p class="note">Hold every claim scoring under 0.7 for review before it is filed. Choose how many of those held claims get fixed in time. The fixed ones are assumed to deny at the same 1.7% as claims that scored 0.7 or higher.</p>
+    <div class="panel calc">
+      <div><label for="fix">Share of held claims fixed before filing: <b id="fixv" style="font-family:var(--f-mono)">25%</b></label>
+      <input id="fix" type="range" min="0" max="100" value="25" step="1"></div>
+      <div class="out"><div><div class="big" id="saved">$5.0M</div><div class="small">billed charges kept out of denial, per year</div></div>
+      <div><div class="big" style="color:var(--ink)" id="pct">6.7%</div><div class="small">of one year of denied charges (about $21M)</div></div></div>
+      <p class="small">Billed charges, not cash collected. The 25% and 50% settings match the repo's saved scenarios ($5.0M and $10.0M a year).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Payer does not matter</h2>
+    <p class="note">Denial rate by payer, with 95% ranges. The axis starts at zero. All six sit between 29.8% and 30.7%.</p>
+    <div class="panel"><svg id="c-payer" viewBox="0 0 640 260" role="img" aria-label="Denial rate by payer"></svg>
+    <details><summary>View as table</summary><div class="tw" id="t-payer"></div></details></div>
+  </section>
+
+  <section>
+    <h2>Where the recoverable money is</h2>
+    <p class="note">Dollars the dataset models as recoverable on appeal, by denial reason, over 3.5 years. Duplicate and timely-filing denials cannot be appealed and are written off, so they appear at zero.</p>
+    <div class="panel"><svg id="c-cat" viewBox="0 0 640 300" role="img" aria-label="Recoverable dollars by denial category"></svg>
+    <details><summary>View as table</summary><div class="tw" id="t-cat"></div></details></div>
+  </section>
+
+  <section>
+    <h2>It is not getting better or worse</h2>
+    <p class="note">Quarterly denial rate. It stays between 29.3% and 30.9% for 14 straight quarters, so waiting will not fix it.</p>
+    <div class="panel"><svg id="c-trend" viewBox="0 0 640 240" role="img" aria-label="Quarterly denial rate"></svg>
+    <details><summary>View as table</summary><div class="tw" id="t-trend"></div></details></div>
+  </section>
+
+  <footer>
+    The data is the synthetic DenialIQ claims set from Kaggle (CC BY-SA 4.0). The numbers describe how the data was generated, not a real hospital. Every figure on this page comes from the analysis outputs in the project repo, <a href="https://github.com/imtheeon/claim-denial-analysis" target="_blank" rel="noopener">github.com/imtheeon/claim-denial-analysis</a>. Built by Leanthel Colon Cuevas.
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+// All values copied from outputs/*.csv in the project repo.
+var DOC = (function(){
+  // auth-required claims: [band, adjudicated, denial rate] for gap and no-gap, combined by claim count
+  var rows = {"Under 0.5":[[3461,1.0],[5244,1.0]], "0.5 to 0.7":[[2430,0.7177],[6945,0.6068]], "0.7 to 0.9":[[795,0.1321],[19685,0.0214]], "0.9 or higher":[[11764,0.0]]};
+  return Object.keys(rows).map(function(k){var n=0,d=0;rows[k].forEach(function(r){n+=r[0];d+=r[0]*r[1]});return {label:k,n:n,rate:d/n}});
+})();
+var PAYER = [["Commercial PPO",.2992,.2939,.3046,27865],["Medicare FFS",.3011,.2954,.3069,24501],["Medicare Advantage",.3042,.2979,.3106,20212],["Commercial HMO",.3009,.2934,.3084,14371],["Medicaid Managed",.3074,.3004,.3144,16690],["Commercial EPO",.298,.288,.3082,7873]];
+var CAT = [["Coding error",12211320,"Recode and resubmit",.7416],["Medical necessity",9881803,"Appeal",.4707],["Auth missing",5635188,"Get auth and resubmit",.4009],["Eligibility",2523871,"Verify and resubmit",.27],["Bundling",2253115,"Recode and resubmit",.6202],["Duplicate",0,"Write off",0],["Timely filing",0,"Write off",0]];
+var TREND = [["2021 Q1",.3044],["2021 Q2",.2972],["2021 Q3",.3039],["2021 Q4",.3007],["2022 Q1",.3043],["2022 Q2",.3045],["2022 Q3",.3064],["2022 Q4",.3088],["2023 Q1",.3023],["2023 Q2",.3044],["2023 Q3",.3047],["2023 Q4",.2946],["2024 Q1",.2935],["2024 Q2",.2967]];
+var KPI = {claims:120000,adj:111512,denied:33664,rate:.3019,usd:74132368,rec:32505298};
+var PER_YEAR_AT_100 = 19981476; // saved scenarios: 4,995,369 at 25% and 9,990,738 at 50%
+
+var NS='http://www.w3.org/2000/svg', tip=document.getElementById('tip');
+function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function pct(x,d){return (x*100).toFixed(d==null?1:d)+'%'}
+function usd(x){return x>=1e6?'$'+(x/1e6).toFixed(1)+'M':'$'+Math.round(x/1e3)+'K'}
+function showTip(ev,html){tip.innerHTML=html;tip.style.opacity=1;var x=ev.clientX+14,y=ev.clientY+14;if(x+250>innerWidth)x=ev.clientX-254;tip.style.left=Math.max(8,x)+'px';tip.style.top=y+'px'}
+function hideTip(){tip.style.opacity=0}
+function hover(node,html){
+  node.setAttribute('tabindex','0');node.classList.add('hit');
+  node.addEventListener('mousemove',function(e){showTip(e,html)});
+  node.addEventListener('mouseleave',hideTip);
+  node.addEventListener('focus',function(){var r=node.getBoundingClientRect();showTip({clientX:r.left+r.width/2,clientY:r.top},html)});
+  node.addEventListener('blur',hideTip);
+}
+function table(id,head,rows){
+  var h='<table><thead><tr>'+head.map(function(x){return '<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(x){return '<td>'+x+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>';
+  document.getElementById(id).innerHTML=h;
+}
+
+// KPI tiles
+document.getElementById('kpis').innerHTML=[
+ [KPI.claims.toLocaleString(),'claims submitted'],[pct(KPI.rate),'of adjudicated claims denied'],[usd(KPI.usd),'billed charges denied'],[usd(KPI.rec),'modeled as recoverable']
+].map(function(k){return '<div class="kpi"><b>'+k[0]+'</b><span>'+k[1]+'</span></div>'}).join('');
+
+// Chart: documentation bands (vertical bars)
+(function(){
+  var s=document.getElementById('c-doc'),W=640,H=250,L=44,B=38,T=14,R=10,pw=W-L-R,ph=H-T-B;
+  [0,.25,.5,.75,1].forEach(function(v){var y=T+ph*(1-v);el('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)'},s);var t=el('text',{x:L-8,y:y+4,'text-anchor':'end'},s);t.textContent=Math.round(v*100)+'%'});
+  var bw=pw/DOC.length;
+  DOC.forEach(function(d,i){
+    var h=Math.max(ph*d.rate,d.rate>0?2:0),x=L+i*bw+bw*.18,w=bw*.64,y=T+ph-h;
+    var low=i<2, r=el('rect',{x:x,y:y,width:w,height:h,rx:3,fill:low?'var(--risk)':'var(--accent)'},s);
+    var v=el('text',{x:x+w/2,y:y-6,'text-anchor':'middle','class':'val'},s);v.textContent=pct(d.rate);
+    var l=el('text',{x:x+w/2,y:H-16,'text-anchor':'middle'},s);l.textContent=d.label;
+    var hit=el('rect',{x:L+i*bw,y:T,width:bw,height:ph+B-8,fill:'transparent'},s);
+    hover(hit,'<b>Score '+d.label+'</b><br>'+pct(d.rate)+' denied<br>'+d.n.toLocaleString()+' claims');
+  });
+  table('t-doc',['Documentation score','Claims','Denial rate'],DOC.map(function(d){return [d.label,d.n.toLocaleString(),pct(d.rate)]}));
+})();
+
+// Calculator
+(function(){
+  var r=document.getElementById('fix');
+  function go(){var f=+r.value/100,v=f*PER_YEAR_AT_100;
+    document.getElementById('fixv').textContent=r.value+'%';
+    document.getElementById('saved').textContent=usd(v);
+    document.getElementById('pct').textContent=pct(v/(KPI.usd/3.5),1);}
+  r.addEventListener('input',go);go();
+})();
+
+// Chart: payer (horizontal bars with range)
+(function(){
+  var s=document.getElementById('c-payer'),W=640,L=150,R=20,T=8,rowH=38,H=T+rowH*PAYER.length+30,pw=W-L-R,max=.4;
+  s.setAttribute('viewBox','0 0 '+W+' '+H);
+  [0,.1,.2,.3,.4].forEach(function(v){var x=L+pw*v/max;el('line',{x1:x,x2:x,y1:T,y2:H-26,stroke:'var(--grid)'},s);var t=el('text',{x:x,y:H-8,'text-anchor':'middle'},s);t.textContent=Math.round(v*100)+'%'});
+  PAYER.forEach(function(p,i){
+    var y=T+i*rowH+8,w=pw*p[1]/max;
+    var t=el('text',{x:L-10,y:y+14,'text-anchor':'end'},s);t.textContent=p[0];
+    el('rect',{x:L,y:y,width:w,height:20,rx:3,fill:'var(--accent)'},s);
+    var x1=L+pw*p[2]/max,x2=L+pw*p[3]/max;
+    el('line',{x1:x1,x2:x2,y1:y+10,y2:y+10,stroke:'var(--ink)','stroke-width':2},s);
+    el('line',{x1:x1,x2:x1,y1:y+5,y2:y+15,stroke:'var(--ink)','stroke-width':2},s);el('line',{x1:x2,x2:x2,y1:y+5,y2:y+15,stroke:'var(--ink)','stroke-width':2},s);
+    var v=el('text',{x:x2+8,y:y+14,'class':'val'},s);v.textContent=pct(p[1]);
+    var hit=el('rect',{x:0,y:y-6,width:W,height:rowH-2,fill:'transparent'},s);
+    hover(hit,'<b>'+p[0]+'</b><br>'+pct(p[1])+' denied (95% range '+pct(p[2])+' to '+pct(p[3])+')<br>'+p[4].toLocaleString()+' adjudicated claims');
+  });
+  table('t-payer',['Payer','Denial rate','95% low','95% high','Claims'],PAYER.map(function(p){return [p[0],pct(p[1]),pct(p[2]),pct(p[3]),p[4].toLocaleString()]}));
+})();
+
+// Chart: recoverable dollars by category
+(function(){
+  var s=document.getElementById('c-cat'),W=640,L=130,R=70,T=8,rowH=38,H=T+rowH*CAT.length+8,pw=W-L-R,max=14e6;
+  s.setAttribute('viewBox','0 0 '+W+' '+H);
+  CAT.forEach(function(c,i){
+    var y=T+i*rowH+6,w=Math.max(pw*c[1]/max,c[1]>0?2:0);
+    var t=el('text',{x:L-10,y:y+14,'text-anchor':'end'},s);t.textContent=c[0];
+    el('rect',{x:L,y:y,width:w,height:20,rx:3,fill:c[1]>0?'var(--accent)':'var(--line)'},s);
+    var v=el('text',{x:L+w+8,y:y+14,'class':'val'},s);v.textContent=c[1]>0?usd(c[1]):'$0';
+    var hit=el('rect',{x:0,y:y-6,width:W,height:rowH-2,fill:'transparent'},s);
+    hover(hit,'<b>'+c[0]+'</b><br>'+(c[1]>0?usd(c[1])+' recoverable<br>Average appeal success '+pct(c[3],0)+'<br>Action: '+c[2]:'Cannot be appealed. '+c[2]));
+  });
+  table('t-cat',['Denial reason','Recoverable $','Appeal success','Action'],CAT.map(function(c){return [c[0],'$'+c[1].toLocaleString(),pct(c[3],0),c[2]]}));
+})();
+
+// Chart: quarterly trend
+(function(){
+  var s=document.getElementById('c-trend'),W=640,H=240,L=44,R=14,T=14,B=36,pw=W-L-R,ph=H-T-B,lo=0,hi=.4;
+  [0,.1,.2,.3,.4].forEach(function(v){var y=T+ph*(1-(v-lo)/(hi-lo));el('line',{x1:L,x2:W-R,y1:y,y2:y,stroke:'var(--grid)'},s);var t=el('text',{x:L-8,y:y+4,'text-anchor':'end'},s);t.textContent=Math.round(v*100)+'%'});
+  var pts=TREND.map(function(d,i){return [L+pw*i/(TREND.length-1),T+ph*(1-(d[1]-lo)/(hi-lo))]});
+  el('polyline',{points:pts.map(function(p){return p.join(',')}).join(' '),fill:'none',stroke:'var(--accent)','stroke-width':2,'stroke-linejoin':'round'},s);
+  TREND.forEach(function(d,i){
+    if(i%2===0||i===TREND.length-1){var t=el('text',{x:pts[i][0],y:H-14,'text-anchor':'middle'},s);t.textContent=d[0].replace(' ',' ')}
+    el('circle',{cx:pts[i][0],cy:pts[i][1],r:i===TREND.length-1?4.5:3,fill:'var(--accent)',stroke:'var(--surface)','stroke-width':2},s);
+    var hit=el('rect',{x:pts[i][0]-pw/(TREND.length-1)/2,y:T,width:pw/(TREND.length-1),height:ph,fill:'transparent'},s);
+    hover(hit,'<b>'+d[0]+'</b><br>'+pct(d[1],2)+' denied');
+  });
+  var last=TREND[TREND.length-1];var e=el('text',{x:pts[pts.length-1][0],y:pts[pts.length-1][1]-12,'text-anchor':'end','class':'val'},s);e.textContent=pct(last[1]);
+  table('t-trend',['Quarter','Denial rate'],TREND.map(function(d){return [d[0],pct(d[1],2)]}));
+})();
+</script>
