@@ -20,7 +20,7 @@ pip install -r requirements.txt && streamlit run app.py
 python -m pytest -q     # checks the README numbers against outputs/ and the cleaned data
 ```
 
-`demo/index.html` is a self-contained interactive page built from the numbers in `outputs/`: charts with hover details and a slider for the documentation-check scenario. Open it in a browser, or turn on GitHub Pages for the `demo/` folder to host it.
+`docs/index.html` is a self-contained interactive page built from the numbers in `outputs/`: charts with hover details and a slider for the documentation-check scenario. Open it in a browser, or host it free with GitHub Pages (Settings, Pages, deploy from branch `main`, folder `/docs`).
 
 ---
 
