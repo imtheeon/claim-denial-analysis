@@ -2,6 +2,11 @@
 
 [![tests](https://github.com/imtheeon/claim-denial-analysis/actions/workflows/tests.yml/badge.svg)](https://github.com/imtheeon/claim-denial-analysis/actions/workflows/tests.yml)
 
+## In plain English
+- **What it does:** looks at 120,000 medical claims to find which ones insurers deny, what the denials cost, and what a billing team should do about it.
+- **Biggest finding:** **96% of denied dollars ($71.4M of $74.1M)** come from the 36% of claims sent with weak documentation (score below 0.7). Those claims are denied 81% of the time, against 1.7% for the rest. Payer, specialty and diagnosis barely matter.
+- **Read this first:** the data is synthetic, and the documentation pattern is cleaner than real payers behave. This project shows how the analysis would run on real claims. Treat the dollar figures as an upper bound, not as a real hospital's numbers.
+
 **Question:** Which procedures, providers, payers and diagnosis categories get denied most, what do denials cost, and what should a billing team do about it?
 
 **Data:** 120,000 claims from the Kaggle dataset [DenialIQ: 120K Medical Claims | X12 Denial Codes](https://www.kaggle.com/datasets/nudratabbas/denialiq-120k-medical-claims-x12-denial-codes) (CC BY-SA 4.0), submitted January 2021 to June 2024. **The dataset is synthetic** (every row is flagged `synthetic_flag = TRUE` by its author). Findings show how this analysis would run on real 837/835 data; the specific numbers describe the generator, not a real hospital.
